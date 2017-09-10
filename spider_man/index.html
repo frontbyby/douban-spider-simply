@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>spider_test</title>
+    <link rel="stylesheet" href="styles/common.css">
+</head>
+<body>
+    链接: <input type="text" placeholder="网站链接" id="URL" value="https://book.douban.com/">
+    属性名: <input type="text" placeholder="用空格分割输入的className" id="cln" value=".cover a">
+    列表结构:
+    <div class="childrens">
+        <input type="text" id="row1" placeholder="列名-属性" value="title-title">
+        <input type="text" id="row2" placeholder="列名-属性" value="href-href">
+        <input type="text" id="row3" placeholder="列名-子元素-子元素属性" value="pic-img-src">
+    </div>
+    <input type="button" value="Search" onclick="getSource()" id="search">
+
+    <ul class="results">
+        <li class="lf"></li>
+        <li class="lf"></li>
+        <li class="lf"></li>
+    </ul>
+</body>
+<script src="node_modules/jquery/dist/jquery.min.js"></script>
+<script>
+    function showSource(data) {
+        var str = "";
+        data.map((o) => {
+            str += '<ul class="results lf"><li>\
+                    <dt><img src="'+o.pic+'"></dt>\
+                    <dd><a href="'+o.href+'">'+o.title+'</a></dd><li>\
+                </ul>'
+        })
+        $(".results").append(str)
+    }
+    var source = window.localStorage.getItem("getSource")
+    if(source) {
+
+        showSource(JSON.parse(source));
+    }
+    function sendReq(options){
+        $.ajax({
+            url: "/spider",
+            type: "GET",
+            data: options,
+            success: function(data) {
+                console.log(data)
+                if(data) {
+                    var titles = data[0];
+                    window.localStorage.setItem("getSource", JSON.stringify(data))
+                    showSource(data);
+                }
+            }
+        })
+    }
+    function getSource() {
+        var urlValue = $("#URL").val(),
+            clnValue = $("#cln").val();
+
+        if(!!urlValue && !!clnValue) {
+            var children =[];
+            $('.childrens input').each(function(i, item) {
+                if($(this).val()){
+                    children.push($(this).val())
+                }
+            })
+            var options = {
+                url: urlValue,
+                cln: clnValue,
+                children: children
+            }
+            sendReq(options);
+        }
+    }
+</script>
+</html>
